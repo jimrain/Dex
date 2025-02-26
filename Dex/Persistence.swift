@@ -8,9 +8,11 @@
 import CoreData
 
 struct PersistenceController {
+    // The controller is the thing that controls the database.
     static let shared = PersistenceController()
 
     @MainActor
+    // This one is just for the preview. 
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
         let viewContext = result.container.viewContext
@@ -28,7 +30,8 @@ struct PersistenceController {
         }
         return result
     }()
-
+    
+    // The container is the database (where you put the data)
     let container: NSPersistentContainer
 
     init(inMemory: Bool = false) {
