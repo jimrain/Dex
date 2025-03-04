@@ -20,6 +20,9 @@ struct FetchedPokemon: Decodable {
     let sprite: URL
     let shiny: URL
     
+    // Coding keys are where you map the data you want to get out of the JSON to the actual JSON structure.
+    // This is the API call that gave us the sample data: https://pokeapi.co/api/v2/pokemon/1/
+    // Drop that into the json viewer here: https://jsonviewer.stack.hu
     enum CodingKeys: String, CodingKey {
         case id
         case name
@@ -33,24 +36,51 @@ struct FetchedPokemon: Decodable {
                 case name
             }
         }
+        enum StatDictionaryKeys: CodingKey {
+            case baseStat
+        }
+        
+        enum SpriteKeys: String, CodingKey {
+            case sprite = "frontDefault"
+            case shiny = "frontShiny"
+        }
+        
     }
-    
-    enum StatDictionaryKeys: CodingKey {
-        case baseStat
-    }
-    
-    enum SpriteKeys: String, CodingKey {
-        case sprite = "frontDefault"
-        case shiny = "frontShiny"
-    }
-    
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        self.id = try container.decode(Int16.self, forKey: .id)
-        self.name = try container.decode(String.self, forKey: .name)
-        self.types = try container.decode([String].self, forKey: .types)
+        id = try container.decode(Int16.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        var decodedTypes: [String] = []
+        // Keyed container is a dictionary, unkeyed containers are arrays.
+        var typesContainer = try container.nestedUnkeyedContainer(forKey: .types)
+        while !typesContainer.isAtEnd {
+            let typesDictionaryContainer = try typesContainer.nestedContainer(keyedBy: CodingKeys.TypeDictionaryKeys.self)
+            let typeContainer = try typesDictionaryContainer.nestedContainer(keyedBy: CodingKeys.TypeDictionaryKeys.TypeKeys.self, forKey: .type)
+            let type = try typeContainer.decode(String.self, forKey: .name)
+            decodedTypes.append(type)
+        }
+        types = decodedTypes
+        
+        var decodedStats: [Int16] = []
+        var statsContainer = try container.nestedUnkeyedContainer(forKey: .stats)
+        while !statsContainer.isAtEnd {
+            let statsDictionaryContainer = try statsContainer.nestedContainer(keyedBy: CodingKeys.StatDictionaryKeys.self)
+            let stat = try statsDictionaryContainer.decode(Int16.self, forKey: .baseStat)
+            decodedStats.append(stat)
+        }
+        hp = decodedStats[0]
+        attack = decodedStats[1]
+        defense = decodedStats[2]
+        specialAttack = decodedStats[3]
+        specialDefense = decodedStats[4]
+        speed = decodedStats[5]
+        
+        
+        let spritesContainer = try container.nestedContainer(keyedBy: CodingKeys.SpriteKeys.self, forKey: .sprites)
+        sprite = try spritesContainer.decode(URL.self, forKey: .sprite)
+        shiny = try spritesContainer.decode(URL.self, forKey: .shiny)
     }
 }
 
