@@ -11,7 +11,17 @@ struct PersistenceController {
     // The controller is the thing that controls the database.
     static let shared = PersistenceController()
 
-    @MainActor
+    static var previewPokemon: Pokemon {
+       let context = PersistenceController.preview.container.viewContext
+        
+        let fetchRequest: NSFetchRequest<Pokemon> = Pokemon.fetchRequest()
+        fetchRequest.fetchLimit = 1
+        
+        let resutls = try! context.fetch(fetchRequest)
+        return resutls.first!
+    }
+    
+    // @MainActor
     // This one is just for the preview.
     // Core data makes strings and URLs optional so we will need to deal with that in our code.
     static let preview: PersistenceController = {
