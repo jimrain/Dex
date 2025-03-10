@@ -28,6 +28,7 @@ extension Pokemon {
         Color(types![0].capitalized)
     }
     
+    // This is needed so we can print the name of the stat and also for ordering.
     var stats: [Stat] {
         [
             Stat(id: 1, name: "HP", value: hp),
@@ -40,7 +41,7 @@ extension Pokemon {
     }
     
     var highestStat: Stat {
-        stats.max { $0.value < $1.valuexc}!
+        stats.max { $0.value < $1.value}!
     }
 }
 
