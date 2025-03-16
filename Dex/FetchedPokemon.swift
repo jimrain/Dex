@@ -17,8 +17,8 @@ struct FetchedPokemon: Decodable {
     let specialAttack: Int16
     let specialDefense: Int16
     let speed: Int16
-    let sprite: URL
-    let shiny: URL
+    let spriteURL: URL
+    let shinyURL: URL
     
     // Coding keys are where you map the data you want to get out of the JSON to the actual JSON structure.
     // This is the API call that gave us the sample data: https://pokeapi.co/api/v2/pokemon/1/
@@ -41,8 +41,8 @@ struct FetchedPokemon: Decodable {
         }
         
         enum SpriteKeys: String, CodingKey {
-            case sprite = "frontDefault"
-            case shiny = "frontShiny"
+            case spriteURL = "frontDefault"
+            case shinyURL = "frontShiny"
         }
         
     }
@@ -92,8 +92,8 @@ struct FetchedPokemon: Decodable {
         
         
         let spritesContainer = try container.nestedContainer(keyedBy: CodingKeys.SpriteKeys.self, forKey: .sprites)
-        sprite = try spritesContainer.decode(URL.self, forKey: .sprite)
-        shiny = try spritesContainer.decode(URL.self, forKey: .shiny)
+        spriteURL = try spritesContainer.decode(URL.self, forKey: .spriteURL)
+        shinyURL = try spritesContainer.decode(URL.self, forKey: .shinyURL)
     }
 }
 
