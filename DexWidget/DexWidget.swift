@@ -5,26 +5,25 @@
 //  Created by Jim Rainville on 3/20/25.
 //
 
-/*
+
 import WidgetKit
 import SwiftUI
+import SwiftData
 
 struct Provider: TimelineProvider {
-    var randomPokemon: Pokemon {
-        var results: [Pokemon] = []
+
+    var sharedModelContainer: ModelContainer = {
+        let schema = Schema([
+            Pokemon.self,
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         
         do {
-            results = try PersistenceController.shared.container.viewContext.fetch(Pokemon.fetchRequest())
+            return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            print("Cound't Fetch: \(error)")
+            fatalError("Could not create ModelContainer: \(error)")
         }
-        
-        if let randomPokemon = results.randomElement() {
-            return randomPokemon
-        }
-        
-        return PersistenceController.previewPokemon
-    }
+    }()
     
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry.placeholder
@@ -36,24 +35,38 @@ struct Provider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        var entries: [SimpleEntry] = []
-
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .second, value: hourOffset * 5, to: currentDate)!
+        
+        Task { @MainActor in
             
-            let entryPokemon = randomPokemon
             
-            let entry = SimpleEntry(date: entryDate,
-                                    name: entryPokemon.name!,
-                                    types: entryPokemon.types!,
-                                    sprite: entryPokemon.spriteImage)
-            entries.append(entry)
+            var entries: [SimpleEntry] = []
+            
+            // Generate a timeline consisting of five entries an hour apart, starting from the current date.
+            let currentDate = Date()
+            
+            if let results = try?
+                sharedModelContainer.mainContext
+                .fetch(FetchDescriptor<Pokemon>()) {
+                
+                for hourOffset in 0 ..< 5 {
+                    let entryDate = Calendar.current.date(byAdding: .second, value: hourOffset * 5, to: currentDate)!
+                    
+                    let entryPokemon = results.randomElement()!
+                    
+                    let entry = SimpleEntry(date: entryDate,
+                                            name: entryPokemon.name,
+                                            types: entryPokemon.types,
+                                            sprite: entryPokemon.spriteImage)
+                    entries.append(entry)
+                }
+                
+                let timeline = Timeline(entries: entries, policy: .atEnd)
+                completion(timeline)
+            } else {
+                let timeline = Timeline(entries: [SimpleEntry.placeholder, SimpleEntry.placeholder2], policy: .atEnd)
+                completion(timeline)
+            }
         }
-
-        let timeline = Timeline(entries: entries, policy: .atEnd)
-        completion(timeline)
     }
 
 }
@@ -191,4 +204,4 @@ struct DexWidget: Widget {
     SimpleEntry.placeholder2
 }
 
-*/
+
