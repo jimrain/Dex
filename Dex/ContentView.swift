@@ -14,6 +14,7 @@ struct ContentView: View {
     
     @State private var searchText = ""
     @State private var filterByFavorites = false
+    @State private var showShinys = false
     
     let fetcher = FetchService()
     
@@ -51,7 +52,7 @@ struct ContentView: View {
                         ForEach((try? pokedex.filter(dynamicPredicate)) ?? pokedex) { pokemon in
                             NavigationLink (value: pokemon) {
                                 if pokemon.sprite == nil {
-                                    AsyncImage(url: pokemon.spriteURL) { image in
+                                    AsyncImage(url: showShinys ? pokemon.shinyURL : pokemon.spriteURL) { image in
                                         image
                                             .resizable()
                                             .scaledToFit()
@@ -127,6 +128,16 @@ struct ContentView: View {
                     PokemonDetail(pokemon: pokemon)
                 }
                 .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            withAnimation {
+                                showShinys.toggle()
+                            }
+                        } label: {
+                            Label("Show shiny sprites", systemImage: showShinys ? "wand.and.stars" : "wand.and.stars.inverse")
+                        }
+                        .tint(showShinys ? .yellow : .primary)
+                    }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button {
                             withAnimation {
